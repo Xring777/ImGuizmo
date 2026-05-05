@@ -760,6 +760,7 @@ namespace IMGUIZMO_NAMESPACE
       float mDisplayRatio = 1.f;
 
       bool mIsOrthographic = false;
+      bool mIsLeftHanded = false;
       // check to not have multiple gizmo highlighted at the same time
       bool mbOverGizmoHotspot = false;
 
@@ -963,13 +964,18 @@ namespace IMGUIZMO_NAMESPACE
       gContext.mWidth = width;
       gContext.mHeight = height;
       gContext.mXMax = gContext.mX + gContext.mWidth;
-      gContext.mYMax = gContext.mY + gContext.mXMax;
+      gContext.mYMax = gContext.mY + gContext.mHeight;
       gContext.mDisplayRatio = width / height;
    }
 
    void SetOrthographic(bool isOrthographic)
    {
       gContext.mIsOrthographic = isOrthographic;
+   }
+
+   void SetLeftHanded(bool isLeftHanded)
+   {
+      gContext.mIsLeftHanded = isLeftHanded;
    }
 
    void SetDrawlist(ImDrawList* drawlist)
@@ -1291,6 +1297,10 @@ namespace IMGUIZMO_NAMESPACE
       else
       {
          viewDirNormalized = Normalized(gContext.mCameraDir);
+         if (gContext.mIsLeftHanded)
+         {
+            viewDirNormalized = -viewDirNormalized;
+         }
       }
 
       viewDirNormalized.TransformVector(gContext.mModelInverse);

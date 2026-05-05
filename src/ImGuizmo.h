@@ -168,6 +168,8 @@ namespace IMGUIZMO_NAMESPACE
    IMGUI_API void SetRect(float x, float y, float width, float height);
    // default is false
    IMGUI_API void SetOrthographic(bool isOrthographic);
+   // default is false
+   IMGUI_API void SetLeftHanded(bool isLeftHanded);
 
    // Render coordinate system axes (red X, green Y and blue Z). Usefull for debug/tests
    IMGUI_API void DrawAxes(const float* view, const float* projection, const float* matrices, int matrixCount);
