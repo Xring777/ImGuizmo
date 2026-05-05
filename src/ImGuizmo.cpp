@@ -151,13 +151,22 @@ namespace IMGUIZMO_NAMESPACE
       r[2] = a[2] * il;
    }
 
-   void LookAt(const float* eye, const float* at, const float* up, float* m16)
+   void LookAt(const float* eye, const float* at, const float* up, float* m16, bool leftHanded = false)
    {
       float X[3], Y[3], Z[3], tmp[3];
 
-      tmp[0] = eye[0] - at[0];
-      tmp[1] = eye[1] - at[1];
-      tmp[2] = eye[2] - at[2];
+      if (leftHanded)
+      {
+         tmp[0] = at[0] - eye[0];
+         tmp[1] = at[1] - eye[1];
+         tmp[2] = at[2] - eye[2];
+      }
+      else
+      {
+         tmp[0] = eye[0] - at[0];
+         tmp[1] = eye[1] - at[1];
+         tmp[2] = eye[2] - at[2];
+      }
       Normalize(tmp, Z);
       Normalize(up, Y);
       Cross(Y, Z, tmp);
@@ -3145,7 +3154,9 @@ namespace IMGUIZMO_NAMESPACE
       matrix_t viewInverse;
       viewInverse.Inverse(*(matrix_t*)view);
 
-      const vec_t camTarget = viewInverse.v.position - viewInverse.v.dir * length;
+      const float viewDirToTarget = gContext.mIsLeftHanded ? 1.f : -1.f;
+      const float viewDirToEye = -viewDirToTarget;
+      const vec_t camTarget = viewInverse.v.position + viewInverse.v.dir * (viewDirToTarget * length);
 
       // view/projection matrices
       const float distance = 3.f;
@@ -3155,9 +3166,9 @@ namespace IMGUIZMO_NAMESPACE
 
       vec_t dir = makeVect(viewInverse.m[2][0], viewInverse.m[2][1], viewInverse.m[2][2]);
       vec_t up = makeVect(viewInverse.m[1][0], viewInverse.m[1][1], viewInverse.m[1][2]);
-      vec_t eye = dir * distance;
+      vec_t eye = dir * (viewDirToEye * distance);
       vec_t zero = makeVect(0.f, 0.f);
-      LookAt(&eye.x, &zero.x, &up.x, cubeView.m16);
+      LookAt(&eye.x, &zero.x, &up.x, cubeView.m16, gContext.mIsLeftHanded);
 
       // set context
       gContext.mViewMat = cubeView;
@@ -3270,8 +3281,8 @@ namespace IMGUIZMO_NAMESPACE
          newUp.Lerp(interpolationUp, 0.3f);
          newUp.Normalize();
          newUp = interpolationUp;
-         vec_t newEye = camTarget + newDir * length;
-         LookAt(&newEye.x, &camTarget.x, &newUp.x, view);
+         vec_t newEye = camTarget + newDir * (viewDirToEye * length);
+         LookAt(&newEye.x, &camTarget.x, &newUp.x, view, gContext.mIsLeftHanded);
       }
       gContext.mIsViewManipulatorHovered = gContext.mbMouseOver && ImRect(position, position + size).Contains(io.MousePos);
 
@@ -3342,8 +3353,8 @@ namespace IMGUIZMO_NAMESPACE
             newDir.Normalize();
          }
 
-         vec_t newEye = camTarget + newDir * length;
-         LookAt(&newEye.x, &camTarget.x, &referenceUp.x, view);
+         vec_t newEye = camTarget + newDir * (viewDirToEye * length);
+         LookAt(&newEye.x, &camTarget.x, &referenceUp.x, view, gContext.mIsLeftHanded);
       }
 
       gContext.mbUsingViewManipulate = (interpolationFrames != 0) || isDraging;
